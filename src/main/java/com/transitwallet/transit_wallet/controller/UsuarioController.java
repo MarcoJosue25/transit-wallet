@@ -1,5 +1,7 @@
 package com.transitwallet.transit_wallet.controller;
 
+import com.transitwallet.transit_wallet.dto.LoginRequest;
+import com.transitwallet.transit_wallet.dto.LoginResponse;
 import com.transitwallet.transit_wallet.dto.RegistroRequest;
 import com.transitwallet.transit_wallet.dto.UsuarioResponse;
 import com.transitwallet.transit_wallet.model.Usuario;
@@ -22,8 +24,13 @@ public class UsuarioController {
     @PostMapping("/registro")
     public UsuarioResponse registrar(@RequestBody RegistroRequest request){
         Usuario usuario = usuarioService.registrar(
-                request.getEmail(), request.getEmail(), request.getPassword());
+                request.getNombre(), request.getEmail(), request.getPassword());
         return new UsuarioResponse(usuario.getId(), usuario.getNombre(), usuario.getEmail());
     }
 
+    @PostMapping("/login")
+    public LoginResponse login(@RequestBody LoginRequest request){
+        String token = usuarioService.login(request.getEmail(), request.getPassword());
+        return new LoginResponse(token);
+    }
 }
