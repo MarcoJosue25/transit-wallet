@@ -31,9 +31,3 @@ public class Seguridad {
         return http.build();
     }
 }
-
-
-
-
-/*
-*/

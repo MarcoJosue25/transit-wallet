@@ -26,5 +26,4 @@ public class UsuarioController {
         return new UsuarioResponse(usuario.getId(), usuario.getNombre(), usuario.getEmail());
     }
 
-
 }
