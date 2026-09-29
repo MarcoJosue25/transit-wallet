@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class TarjetaServiceImpl implements TarjetaService{
 
     private static final int LONGITUD_NUMERO = 16;
+    //Guardamos la clase en un objeto para poder usar sus métodos
     private final TarjetaRepository tarjetaRepository;
 
     public TarjetaServiceImpl(TarjetaRepository tarjetaRepository) {
@@ -40,5 +41,10 @@ public class TarjetaServiceImpl implements TarjetaService{
         for (int i=0; i < LONGITUD_NUMERO; i++){
             numero.append(ThreadLocalRandom.current().nextInt(10));
         }return numero.toString();
+    }
+
+    @Override
+    public Tarjeta obtenerPorUsuario(Usuario usuario){
+        return tarjetaRepository.findByUsuarioId(usuario.getId()).getFirst();
     }
 }
