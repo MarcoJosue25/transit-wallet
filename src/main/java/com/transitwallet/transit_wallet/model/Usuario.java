@@ -1,7 +1,6 @@
 package com.transitwallet.transit_wallet.model;
 
 import jakarta.persistence.*;
-import lombok.Generated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

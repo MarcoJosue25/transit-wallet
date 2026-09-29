@@ -6,6 +6,8 @@ import com.transitwallet.transit_wallet.dto.RegistroRequest;
 import com.transitwallet.transit_wallet.dto.UsuarioResponse;
 import com.transitwallet.transit_wallet.model.Usuario;
 import com.transitwallet.transit_wallet.service.UsuarioService;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,5 +34,10 @@ public class UsuarioController {
     public LoginResponse login(@RequestBody LoginRequest request){
         String token = usuarioService.login(request.getEmail(), request.getPassword());
         return new LoginResponse(token);
+    }
+
+    @GetMapping("/yo")
+    public String yo(Authentication authentication){
+        return authentication.getName();
     }
 }
