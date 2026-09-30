@@ -23,6 +23,8 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 public class SolicitudRecargaServiceImpl implements SolicitudRecargaService {
 
+    public static final BigDecimal UMBRAL_SALDO_BAJO = new BigDecimal("5.00");
+
     private final SolicitudRecargaRepository solicitudRecargaRepository;
     private final TarjetaRepository tarjetaRepository;
     private  final MovimientoRepository movimientoRepository;
@@ -64,6 +66,9 @@ public class SolicitudRecargaServiceImpl implements SolicitudRecargaService {
         }
         Tarjeta tarjeta = solicitud.getTarjeta();
         tarjeta.setSaldo(tarjeta.getSaldo().add(solicitud.getMonto()));
+        if (tarjeta.getSaldo().compareTo(UMBRAL_SALDO_BAJO)>= 0){
+            tarjeta.setAlertaSaldoBajo(false);
+        }
         if(tarjeta.getEstado() == EstadoTarjeta.BLOQUEADA){
             tarjeta.setEstado(EstadoTarjeta.ACTIVA);
         }

@@ -18,8 +18,6 @@ public class MovimientoServiceImpl implements MovimientoService {
         this.movimientoRepository = movimientoRepository;
     }
 
-
-
     @Override
     public Page<Movimiento> obtenerPorTarjeta(Tarjeta tarjeta, Pageable pageable){
         return movimientoRepository.findByTarjetaId(tarjeta.getId(), pageable);

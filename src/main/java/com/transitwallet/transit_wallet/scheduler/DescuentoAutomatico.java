@@ -17,6 +17,7 @@ import java.util.List;
 public class DescuentoAutomatico {
 
     private static final BigDecimal TARIFA = new BigDecimal("2.45");
+    private static final BigDecimal UMBRAL_SALDO_BAJO = new BigDecimal(("5.00"));
 
     private final TarjetaRepository tarjetaRepository;
     private final MovimientoRepository movimientoRepository;
@@ -26,7 +27,7 @@ public class DescuentoAutomatico {
         this.tarjetaRepository = tarjetaRepository;
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 8 * * *")
     public void slot1() {procesarSlot(1);}
 
     @Scheduled(cron = "0 0 13 * * *")
@@ -41,6 +42,9 @@ public class DescuentoAutomatico {
         for(Tarjeta tarjeta: tarjetas){
             if(tarjeta.getSaldo().compareTo(TARIFA) >= 0){
                 tarjeta.setSaldo(tarjeta.getSaldo().subtract(TARIFA));
+                if(tarjeta.getSaldo().compareTo(UMBRAL_SALDO_BAJO) < 0){
+                    tarjeta.setAlertaSaldoBajo(true);
+                }
                 tarjetaRepository.save(tarjeta);
 
                 Movimiento movimiento = new Movimiento();

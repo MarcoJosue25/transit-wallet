@@ -43,6 +43,10 @@ public class Tarjeta {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
+    //Agregado en el último paso
+    @Column(name = "alerta_saldo_bajo",nullable = false)
+    private boolean alertaSaldoBajo = false;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 

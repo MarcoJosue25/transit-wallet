@@ -13,4 +13,6 @@ public class TarjetaResponse {
     private String numero;
     private BigDecimal saldo;
     private EstadoTarjeta estado;
+    private boolean alertaSaldoBajo;
+
 }

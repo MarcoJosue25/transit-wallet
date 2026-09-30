@@ -53,7 +53,7 @@ public class TarjetaController {
     public TarjetaResponse miTarjeta(Authentication authentication){
         Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
         Tarjeta tarjeta = tarjetaService.obtenerPorUsuario(usuario);
-        return new TarjetaResponse(tarjeta.getNumero(), tarjeta.getSaldo(), tarjeta.getEstado());
+        return new TarjetaResponse(tarjeta.getNumero(), tarjeta.getSaldo(), tarjeta.getEstado(),tarjeta.isAlertaSaldoBajo());
     }
 
     @GetMapping("/movimientos")
