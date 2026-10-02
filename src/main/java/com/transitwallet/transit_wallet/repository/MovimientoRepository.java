@@ -7,8 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Pageable;
 public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
 
+    //Devuelve una página con los movimientos dentro de la tarjeta
     Page<Movimiento> findByTarjetaId(Long tarjetaId, Pageable pageable);
-
-
 
 }

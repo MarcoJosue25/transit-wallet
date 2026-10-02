@@ -11,5 +11,6 @@ public interface TarjetaRepository extends JpaRepository<Tarjeta, Long> {
     boolean existsByNumero(String numero);
     List<Tarjeta> findByUsuarioId(Long UsuarioId);
 
+    //Devuelve solo tarjetas activas que cumplan con el uso requerido
     List<Tarjeta> findByEstadoAndUsosPorDiaGreaterThanEqual(EstadoTarjeta estado, int usosPorDia);
 }
