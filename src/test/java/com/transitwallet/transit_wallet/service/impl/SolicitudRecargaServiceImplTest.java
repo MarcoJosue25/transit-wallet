@@ -20,8 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,5 +96,46 @@ class SolicitudRecargaServiceImplTest {
 
     }
 
+    @Test
+    void confirmarReactivarTarjetaBloqueada(){
+        Tarjeta tarjeta = new Tarjeta();
+        tarjeta.setEstado(EstadoTarjeta.BLOQUEADA);
+        tarjeta.setSaldo(new BigDecimal("1.00"));
 
+        SolicitudRecarga solicitud = new SolicitudRecarga();
+        solicitud.setEstado(EstadoRecarga.PENDIENTE);
+        solicitud.setFechaExpiracion(LocalDateTime.now().plusMinutes(5));
+        solicitud.setMonto(new BigDecimal("30.00"));
+        solicitud.setTarjeta(tarjeta);
+
+        when(solicitudRecargaRepository.findByCodigoTemporal("123456"))
+                .thenReturn(Optional.of(solicitud));
+        BigDecimal saldoResultante = service.confirmar("123456");
+
+        assertEquals(EstadoTarjeta.ACTIVA,tarjeta.getEstado());
+        verify(tarjetaRepository).save(tarjeta);
+        verify(solicitudRecargaRepository).save(solicitud);
+        verify(movimientoRepository).save(any(Movimiento.class));
+    }
+
+    @Test
+    void confirmarApagarAlertaSaldoBajo(){
+        Tarjeta tarjeta = new Tarjeta();
+        tarjeta.setAlertaSaldoBajo(true);
+        tarjeta.setSaldo(new BigDecimal("1.50"));
+
+        SolicitudRecarga solicitud = new SolicitudRecarga();
+        solicitud.setTarjeta(tarjeta);
+        solicitud.setMonto(new BigDecimal("15.00"));
+        solicitud.setEstado(EstadoRecarga.PENDIENTE);
+        solicitud.setFechaExpiracion(LocalDateTime.now().plusMinutes(5));
+
+        when(solicitudRecargaRepository.findByCodigoTemporal("123456"))
+                .thenReturn(Optional.of(solicitud));
+        BigDecimal saldoResultante = service.confirmar("123456");
+
+        assertFalse(tarjeta.isAlertaSaldoBajo());
+        verify(tarjetaRepository).save(tarjeta);
+        verify(solicitudRecargaRepository).save(solicitud);
+        verify(movimientoRepository).save(any(Movimiento.class));    }
 }
