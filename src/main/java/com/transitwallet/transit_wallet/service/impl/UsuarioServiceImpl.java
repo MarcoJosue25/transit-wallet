@@ -48,7 +48,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario usuario = usuarioRepository.findByEmail(email).orElseThrow(() -> new
                 CredencialesInvalidasException("Credenciales inválidas"));
         if(!passwordEncoder.matches(password, usuario.getPassword())){
-            throw new IllegalArgumentException(("Credenciales inválidas"));
+            throw new CredencialesInvalidasException(("Credenciales inválidas"));
         }
         return jwtService.generarToken(usuario.getEmail());
     }

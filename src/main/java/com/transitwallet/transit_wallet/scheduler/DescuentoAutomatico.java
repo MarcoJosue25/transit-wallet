@@ -33,7 +33,7 @@ public class DescuentoAutomatico {
     @Scheduled(cron = "0 0 13 * * *")
     public void slot2() {procesarSlot(2);}
 
-    @Scheduled(cron = "0 0 8 * * *")
+    @Scheduled(cron = "0 0 18 * * *")
     public void slot3() {procesarSlot(3);}
 
     @Transactional
