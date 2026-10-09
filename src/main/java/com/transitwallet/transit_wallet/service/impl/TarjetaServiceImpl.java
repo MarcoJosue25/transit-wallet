@@ -2,6 +2,7 @@ package com.transitwallet.transit_wallet.service.impl;
 
 import com.transitwallet.transit_wallet.model.Tarjeta;
 import com.transitwallet.transit_wallet.model.Usuario;
+import com.transitwallet.transit_wallet.model.enums.EstadoTarjeta;
 import com.transitwallet.transit_wallet.repository.TarjetaRepository;
 import com.transitwallet.transit_wallet.service.TarjetaService;
 import org.springframework.stereotype.Service;
@@ -46,5 +47,12 @@ public class TarjetaServiceImpl implements TarjetaService{
     @Override
     public Tarjeta obtenerPorUsuario(Usuario usuario){
         return tarjetaRepository.findByUsuarioId(usuario.getId()).getFirst();
+    }
+
+    @Override
+    public void bloquear(Usuario usuario){
+        Tarjeta tarjeta = tarjetaRepository.findByUsuarioId(usuario.getId()).getFirst();
+        tarjeta.setEstado(EstadoTarjeta.BLOQUEADA);
+        tarjetaRepository.save(tarjeta);
     }
 }

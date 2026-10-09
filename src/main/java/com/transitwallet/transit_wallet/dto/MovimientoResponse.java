@@ -10,10 +10,8 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 public class MovimientoResponse {
-
     private TipoMovimiento tipo;
     private BigDecimal monto;
     private BigDecimal saldoResultante;
     private LocalDateTime fecha;
-
 }

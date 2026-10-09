@@ -5,6 +5,7 @@ import com.transitwallet.transit_wallet.exception.SolicitudRecargaNoEncontradaEx
 import com.transitwallet.transit_wallet.model.Movimiento;
 import com.transitwallet.transit_wallet.model.SolicitudRecarga;
 import com.transitwallet.transit_wallet.model.Tarjeta;
+import com.transitwallet.transit_wallet.model.Usuario;
 import com.transitwallet.transit_wallet.model.enums.EstadoRecarga;
 import com.transitwallet.transit_wallet.model.enums.EstadoTarjeta;
 import com.transitwallet.transit_wallet.model.enums.MetodoPago;
@@ -65,6 +66,10 @@ public class SolicitudRecargaServiceImpl implements SolicitudRecargaService {
             throw new SolicitudRecargaInvalidaException("El código venció");
         }
         Tarjeta tarjeta = solicitud.getTarjeta();
+        if(!tarjeta.getUsuario().isActivo()){
+            throw new SolicitudRecargaInvalidaException("La cuenta está inactiva" +
+                    "y no puede procesar recargas");
+        }
         tarjeta.setSaldo(tarjeta.getSaldo().add(solicitud.getMonto()));
         if (tarjeta.getSaldo().compareTo(UMBRAL_SALDO_BAJO)>= 0){
             tarjeta.setAlertaSaldoBajo(false);
@@ -85,6 +90,5 @@ public class SolicitudRecargaServiceImpl implements SolicitudRecargaService {
         movimientoRepository.save(movimiento);
         return tarjeta.getSaldo();
     }
-
 
 }

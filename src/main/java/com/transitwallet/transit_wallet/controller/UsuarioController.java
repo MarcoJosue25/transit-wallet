@@ -25,9 +25,8 @@ public class UsuarioController {
 
     @PostMapping("/registro")
     public UsuarioResponse registrar(@RequestBody RegistroRequest request){
-        Usuario usuario = usuarioService.registrar(
-                request.getNombre(), request.getEmail(), request.getPassword());
-        return new UsuarioResponse(usuario.getId(), usuario.getNombre(), usuario.getEmail());
+        Usuario usuario = usuarioService.registrar(request.getNombre(), request.getEmail(), request.getPassword());
+        return new UsuarioResponse(usuario.getId(), usuario.getNombre(),usuario.getEmail());
     }
 
     @PostMapping("/login")

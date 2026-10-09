@@ -2,7 +2,10 @@ package com.transitwallet.transit_wallet.service.impl;
 
 import com.transitwallet.transit_wallet.exception.CredencialesInvalidasException;
 import com.transitwallet.transit_wallet.exception.EmailYaRegistradoException;
+import com.transitwallet.transit_wallet.model.Tarjeta;
 import com.transitwallet.transit_wallet.model.Usuario;
+import com.transitwallet.transit_wallet.model.enums.EstadoTarjeta;
+import com.transitwallet.transit_wallet.repository.TarjetaRepository;
 import com.transitwallet.transit_wallet.repository.UsuarioRepository;
 import com.transitwallet.transit_wallet.security.JwtService;
 import com.transitwallet.transit_wallet.service.TarjetaService;
@@ -19,7 +22,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final JwtService jwtService;
     private final TarjetaService tarjetaService;
 
-    public UsuarioServiceImpl(JwtService jwtService, UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, TarjetaService tarjetaService) {
+    public UsuarioServiceImpl(JwtService jwtService, UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
+                              TarjetaService tarjetaService) {
         this.jwtService = jwtService;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
@@ -50,6 +54,10 @@ public class UsuarioServiceImpl implements UsuarioService {
         if(!passwordEncoder.matches(password, usuario.getPassword())){
             throw new CredencialesInvalidasException(("Credenciales inválidas"));
         }
+        if(!usuario.isActivo()){
+            throw new CredencialesInvalidasException("Cuenta inactiva, comuníquese con el área de soporte");
+        }
+
         return jwtService.generarToken(usuario.getEmail());
     }
 
@@ -57,6 +65,25 @@ public class UsuarioServiceImpl implements UsuarioService {
     public Usuario obtenerPorEmail(String email){
         Usuario usuario = usuarioRepository.findByEmail(email).orElseThrow(() -> new
                 CredencialesInvalidasException("Credenciales inválidas"));
+        if(!usuario.isActivo()){
+            throw new CredencialesInvalidasException("Cuenta inactiva, comuníque con el área de soporte");
+        }
         return usuario;
+    }
+
+    @Override
+    public Usuario actualizar(String email, String nNombre){
+        Usuario usuario = obtenerPorEmail(email);
+        usuario.setNombre(nNombre);
+        usuarioRepository.save(usuario);
+        return usuario;
+    }
+    @Transactional
+    @Override
+    public void darDeBaja(String email){
+        Usuario usuario = obtenerPorEmail(email);
+        usuario.setActivo(false);
+        usuarioRepository.save(usuario);
+        tarjetaService.bloquear(usuario);
     }
 }

@@ -7,5 +7,7 @@ public interface TarjetaService {
     Tarjeta crearParaUsuario(Usuario usuario);
 
     Tarjeta obtenerPorUsuario(Usuario usuario);
+
+    void bloquear(Usuario usuario);
 }
 

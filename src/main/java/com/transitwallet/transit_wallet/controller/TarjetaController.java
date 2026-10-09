@@ -1,6 +1,7 @@
 package com.transitwallet.transit_wallet.controller;
 
 import com.transitwallet.transit_wallet.dto.*;
+import com.transitwallet.transit_wallet.model.Movimiento;
 import com.transitwallet.transit_wallet.model.SolicitudRecarga;
 import com.transitwallet.transit_wallet.model.Tarjeta;
 import com.transitwallet.transit_wallet.model.Usuario;
@@ -37,10 +38,10 @@ public class TarjetaController {
     @PostMapping("/recargas/iniciar")
     public IniciarRecargaResponse iniciar (@RequestBody IniciarRecargaRequest request,
                                            Authentication authentication){
-        Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
-        Tarjeta tarjeta = tarjetaService.obtenerPorUsuario(usuario);
-        SolicitudRecarga solicitud = solicitudRecargaService.iniciar(tarjeta, request.getMonto(), request.getMetodoPago());
-        return new IniciarRecargaResponse(solicitud.getCodigoTemporal(),solicitud.getFechaExpiracion());
+      Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
+      Tarjeta tarjeta  = tarjetaService.obtenerPorUsuario(usuario);
+      SolicitudRecarga solicitud = solicitudRecargaService.iniciar(tarjeta, request.getMonto(), request.getMetodoPago());
+      return new IniciarRecargaResponse(solicitud.getCodigoTemporal(), solicitud.getFechaExpiracion());
     }
 
     @PostMapping("/recargas/confirmar")
@@ -53,7 +54,7 @@ public class TarjetaController {
     public TarjetaResponse miTarjeta(Authentication authentication){
         Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
         Tarjeta tarjeta = tarjetaService.obtenerPorUsuario(usuario);
-        return new TarjetaResponse(tarjeta.getNumero(), tarjeta.getSaldo(), tarjeta.getEstado(),tarjeta.isAlertaSaldoBajo());
+        return new TarjetaResponse(tarjeta.getNumero(), tarjeta.getSaldo(), tarjeta.getEstado(), tarjeta.isAlertaSaldoBajo());
     }
 
     @GetMapping("/movimientos")
@@ -61,8 +62,7 @@ public class TarjetaController {
             sort ="fecha", direction = Sort.Direction.DESC)Pageable pageable){
         Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
         Tarjeta tarjeta = tarjetaService.obtenerPorUsuario(usuario);
-        return movimientoService.obtenerPorTarjeta(tarjeta, pageable)
-                .map(m -> new MovimientoResponse(m.getTipo(), m.getMonto(), m.getSaldoResultante(), m.getFecha()));
+        return movimientoService.obtenerPorTarjeta(tarjeta, pageable).map(m -> new MovimientoResponse(m.getTipo(), m.getMonto(), m.getSaldoResultante(),m.getFecha()));
     }
 
 }
