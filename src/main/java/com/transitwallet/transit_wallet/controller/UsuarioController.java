@@ -1,17 +1,11 @@
 package com.transitwallet.transit_wallet.controller;
 
-import com.transitwallet.transit_wallet.dto.LoginRequest;
-import com.transitwallet.transit_wallet.dto.LoginResponse;
-import com.transitwallet.transit_wallet.dto.RegistroRequest;
-import com.transitwallet.transit_wallet.dto.UsuarioResponse;
+import com.transitwallet.transit_wallet.dto.*;
 import com.transitwallet.transit_wallet.model.Usuario;
 import com.transitwallet.transit_wallet.service.UsuarioService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -35,8 +29,21 @@ public class UsuarioController {
         return new LoginResponse(token);
     }
 
-    @GetMapping("/yo")
-    public String yo(Authentication authentication){
-        return authentication.getName();
+    @GetMapping("/me")
+    public UsuarioResponse me(Authentication authentication){
+        Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
+        return new UsuarioResponse(usuario.getId(), usuario.getNombre(), usuario.getEmail());
     }
+    @PutMapping("me")
+    public UsuarioResponse actualizar(Authentication authentication, @RequestBody ActualizarUsuarioRequest request){
+        Usuario usuario = usuarioService.actualizar(authentication.getName(), request.getNombre());
+        return new UsuarioResponse(usuario.getId(), usuario.getNombre(), usuario.getEmail());
+    }
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> darDeBaja(Authentication authentication){
+        usuarioService.darDeBaja(authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
+
+
 }
