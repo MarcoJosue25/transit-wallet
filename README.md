@@ -1,20 +1,20 @@
 # transit-wallet
 
-Backend de una billetera virtual para una tarjeta de transporte público. Lo hice para practicar Java y Spring Boot con un problema que me resulta cercano: en el transporte público de Lima cuesta saber cuánto saldo tienes, recargar la tarjeta no siempre es cómodo y casi nunca puedes ver en qué se fue cada descuento. Aquí el saldo, la recarga y el historial de movimientos se pueden consultar con claridad en cualquier momento.
+Backend de una billetera virtual para una tarjeta de transporte público. Lo hice para practicar Java y Spring Boot con un problema que me resulta cercano: en el transporte público de Lima cuesta saber cuánto saldo tienes, recargar no siempre es cómodo y casi nunca ves en qué se fue cada descuento. Aquí el saldo, la recarga y el historial se consultan con claridad.
 
-El nombre es genérico a propósito: parte de ese problema, pero no pretende replicar ninguna tarjeta ni empresa real.
+El nombre es genérico a propósito: no pretende replicar ninguna tarjeta ni empresa real.
 
 ## Qué hace
 
-- Registro e inicio de sesión. La autenticación usa JWT, sin sesiones en el servidor.
+- Registro e inicio de sesión con JWT, sin sesiones en el servidor y con contraseñas guardadas con BCrypt. El usuario puede ver su perfil, editarlo y darse de baja.
 - Al registrarte se crea tu tarjeta virtual, con un número único de 16 dígitos.
-- Recarga en dos pasos. Primero se pide la recarga (método `YAPE` o `TARJETA`) y el sistema devuelve un código de 6 dígitos que vence a los 5 minutos. Luego se confirma con ese código y se suma el saldo. Si la tarjeta estaba bloqueada, se reactiva.
-- Descuento automático. Tres veces al día (8:00, 13:00 y 18:00) un proceso programado cobra una tarifa de 2,45 a cada tarjeta activa, según cuántas veces al día se usa (de 1 a 3, un valor que se asigna al azar al crearla). Se cobra en las primeras franjas del día. Si el saldo no alcanza, la tarjeta se bloquea hasta la próxima recarga.
-- Alerta de saldo bajo cuando quedan menos de 5,00.
-- Consulta de saldo e historial de movimientos (recargas y consumos), paginado y del más reciente al más antiguo.
+- Recarga en dos pasos: se pide (`YAPE` o `TARJETA`) y el sistema devuelve un código de 6 dígitos que vence a los 5 minutos; luego se confirma con ese código y se suma el saldo. Si la tarjeta estaba bloqueada, se reactiva.
+- Descuento automático a las 8:00, 13:00 y 18:00: cobra 2,45 a cada tarjeta activa según sus usos diarios (de 1 a 3, asignados al azar al crearla). Si el saldo no alcanza, la tarjeta se bloquea hasta la próxima recarga.
+- Alerta de saldo bajo (menos de 5,00) e historial de movimientos paginado, del más reciente al más antiguo.
 
 ## Tecnologías
-Java 21, Spring Boot 4.1.1, Spring Data JPA (Hibernate), Spring Security con JWT (JJWT), MySQL 8.4, Maven, Lombok, JUnit 5 y Mockito, Docker y Docker Compose.
+
+Java 21, Spring Boot 4.1.1, Spring Data JPA (Hibernate), Spring Security con JWT, Bean Validation, MySQL 8.4, Maven, Lombok, JUnit 5 y Mockito, Swagger (springdoc OpenAPI), Docker y Docker Compose.
 
 ## Cómo ejecutarlo
 
@@ -28,97 +28,57 @@ cd transit-wallet
 cp .env.example .env
 ```
 
-Abre el archivo `.env` y reemplaza los valores de ejemplo por los tuyos. Para `JWT_SECRET` necesitas una cadena larga y aleatoria, por ejemplo:
-
-```bash
-openssl rand -base64 48
-```
-
-Después:
+Edita `.env` y reemplaza los valores de ejemplo por los tuyos. Para `JWT_SECRET` usa una cadena larga y aleatoria, por ejemplo con `openssl rand -base64 48`. Después:
 
 ```bash
 docker compose up --build
 ```
 
-La API queda en `http://localhost:8081`. La primera vez tarda unos minutos, porque descarga las dependencias.
-
-Para apagarlo:
-
-```bash
-docker compose down        # conserva los datos
-docker compose down -v     # borra también la base de datos
-```
+La API queda en `http://localhost:8081`. Para apagarla: `docker compose down` (conserva los datos) o `docker compose down -v` (borra también la base).
 
 ### Sin Docker
 
-Necesitas Java 21 y un MySQL con una base llamada `db_transit_wallet` (conviene crearla con la colación `utf8mb4_0900_as_ci`, para que distinga tildes). Define las variables de entorno `DB_USER`, `DB_PASSWORD` y `JWT_SECRET` y ejecuta:
+Necesitas Java 21 y un MySQL con una base `db_transit_wallet` (conviene crearla con la colación `utf8mb4_0900_as_ci`, para que distinga tildes). Define las variables `DB_USER`, `DB_PASSWORD` y `JWT_SECRET` y ejecuta `./mvnw spring-boot:run`.
 
-```bash
-./mvnw spring-boot:run
-```
+## API
 
-## Endpoints
+Con la aplicación en marcha, la documentación interactiva está en `http://localhost:8081/swagger-ui/index.html`. Ahí puedes probar todos los endpoints: haz login, copia el token y pulsa **Authorize**.
 
-| Método | Ruta | Requiere token | Qué hace |
+| Método | Ruta | Token | Qué hace |
 |---|---|---|---|
 | POST | `/api/usuarios/registro` | No | Crea el usuario y su tarjeta |
 | POST | `/api/usuarios/login` | No | Devuelve el token JWT |
+| GET | `/api/usuarios/me` | Sí | Perfil del usuario |
+| PUT | `/api/usuarios/me` | Sí | Actualiza el nombre |
+| DELETE | `/api/usuarios/me` | Sí | Baja del usuario (204) |
 | POST | `/api/tarjetas/recargas/iniciar` | Sí | Genera el código temporal de recarga |
-| POST | `/api/tarjetas/recargas/confirmar` | Sí | Confirma la recarga con el código y suma el saldo |
+| POST | `/api/tarjetas/recargas/confirmar` | Sí | Confirma la recarga y suma el saldo |
 | GET | `/api/tarjetas/mi-tarjeta` | Sí | Número, saldo, estado y alerta de la tarjeta |
 | GET | `/api/tarjetas/movimientos` | Sí | Historial paginado (`?page=0&size=10`) |
 
 El token se envía en el encabezado `Authorization: Bearer <token>`.
 
-Un ejemplo de flujo completo:
-
-```bash
-# 1. Registro
-curl -X POST http://localhost:8081/api/usuarios/registro \
-  -H "Content-Type: application/json" \
-  -d '{"nombre":"Ana","email":"ana@correo.com","password":"clave12345"}'
-
-# 2. Login (devuelve {"token": "..."})
-curl -X POST http://localhost:8081/api/usuarios/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"ana@correo.com","password":"clave12345"}'
-
-# 3. Pedir una recarga (devuelve el código de 6 dígitos)
-curl -X POST http://localhost:8081/api/tarjetas/recargas/iniciar \
-  -H "Authorization: Bearer TU_TOKEN" -H "Content-Type: application/json" \
-  -d '{"monto":50.00,"metodoPago":"YAPE"}'
-
-# 4. Confirmarla con ese código
-curl -X POST http://localhost:8081/api/tarjetas/recargas/confirmar \
-  -H "Authorization: Bearer TU_TOKEN" -H "Content-Type: application/json" \
-  -d '{"codigoTemporal":"123456"}'
-```
-
-Los errores responden con el código HTTP que corresponde y un cuerpo `{"mensaje": "..."}`: 409 si el email ya está registrado, 401 por credenciales inválidas, 404 si el código no existe y 400 si el código venció o ya se usó.
+Los errores responden con un cuerpo `{"mensaje": "..."}` y el código que corresponde: 400 si los datos no son válidos (con el detalle por campo en `errores`) o si el código de recarga venció o ya se usó, 401 por credenciales inválidas o cuenta inactiva, 404 si el código no existe y 409 si el email ya está registrado.
 
 ## Decisiones de diseño
 
 - El dinero va en `BigDecimal`, con columnas `decimal(10,2)`. Una restricción en la base impide que el saldo sea negativo.
-- Confirmar una recarga toca tres tablas (tarjeta, solicitud y movimiento). Todo ocurre dentro de una sola transacción: se guarda completo o no se guarda nada.
-- El proyecto se organiza en controladores, servicios (con su interfaz) y repositorios. Las respuestas usan DTOs para no exponer las entidades ni la contraseña.
-- Las contraseñas se guardan con BCrypt y la autenticación no usa sesión: cada petición lleva su token.
-- El vencimiento de 5 minutos del código se calcula al crear la solicitud y se compara con la hora actual al confirmarla.
+- Confirmar una recarga toca tres tablas (tarjeta, solicitud y movimiento) y ocurre dentro de una sola transacción: se guarda completo o no se guarda nada.
+- El proyecto se organiza en controladores, servicios (con su interfaz) y repositorios. Las respuestas usan DTOs para no exponer las entidades ni la contraseña, y los datos de entrada se validan con Bean Validation.
+- La baja de usuario es lógica: conserva el historial, bloquea la tarjeta para congelar el saldo y rechaza el login y las recargas de esa cuenta.
 
 ## Pruebas
 
 ```bash
-./mvnw test -Dtest=SolicitudRecargaServiceImplTest
+./mvnw test -Dtest="SolicitudRecargaServiceImplTest,UsuarioServiceImplTest"
 ```
 
-Son 6 pruebas unitarias del servicio de recargas, con JUnit 5 y Mockito y sin base de datos: código inexistente, solicitud ya procesada, código vencido, y tres confirmaciones exitosas (actualización del saldo, reactivación de una tarjeta bloqueada y apagado de la alerta de saldo bajo).
-
-`./mvnw test` sin filtro también ejecuta un test de arranque de Spring que necesita la base de datos y las variables de entorno.
+Son 15 pruebas unitarias con JUnit 5 y Mockito, sin base de datos: confirmación de recargas (errores, saldo, reactivación, alerta y cuenta inactiva) y usuarios (consulta, edición, baja y login). `./mvnw test` sin filtro también ejecuta un test de arranque de Spring que necesita la base de datos y las variables de entorno.
 
 ## Limitaciones conocidas
 
-- Los DTOs de entrada no validan los datos.
-- Solo está probado el servicio de recargas. Faltan pruebas de los demás servicios y de integración.
+- Faltan pruebas de los demás servicios, del proceso programado y de integración.
 - La concurrencia no está controlada: dos confirmaciones simultáneas del mismo código podrían procesarse a la vez.
+- El descuento automático guarda cada cambio por separado, sin una transacción por tarjeta.
 - Los códigos temporales de 6 dígitos no se comprueban como únicos.
 - El esquema de la base se genera con `ddl-auto: update`. En un entorno real usaría migraciones versionadas.
-
