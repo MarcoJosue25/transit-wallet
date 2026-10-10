@@ -3,6 +3,7 @@ package com.transitwallet.transit_wallet.controller;
 import com.transitwallet.transit_wallet.dto.*;
 import com.transitwallet.transit_wallet.model.Usuario;
 import com.transitwallet.transit_wallet.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +18,15 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
+
     @PostMapping("/registro")
-    public UsuarioResponse registrar(@RequestBody RegistroRequest request){
+    public UsuarioResponse registrar(@Valid @RequestBody RegistroRequest request){
         Usuario usuario = usuarioService.registrar(request.getNombre(), request.getEmail(), request.getPassword());
         return new UsuarioResponse(usuario.getId(), usuario.getNombre(),usuario.getEmail());
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request){
+    public LoginResponse login(@Valid  @RequestBody LoginRequest request){
         String token = usuarioService.login(request.getEmail(), request.getPassword());
         return new LoginResponse(token);
     }
@@ -35,7 +37,7 @@ public class UsuarioController {
         return new UsuarioResponse(usuario.getId(), usuario.getNombre(), usuario.getEmail());
     }
     @PutMapping("me")
-    public UsuarioResponse actualizar(Authentication authentication, @RequestBody ActualizarUsuarioRequest request){
+    public UsuarioResponse actualizar(Authentication authentication,@Valid  @RequestBody ActualizarUsuarioRequest request){
         Usuario usuario = usuarioService.actualizar(authentication.getName(), request.getNombre());
         return new UsuarioResponse(usuario.getId(), usuario.getNombre(), usuario.getEmail());
     }

@@ -9,6 +9,7 @@ import com.transitwallet.transit_wallet.service.MovimientoService;
 import com.transitwallet.transit_wallet.service.SolicitudRecargaService;
 import com.transitwallet.transit_wallet.service.TarjetaService;
 import com.transitwallet.transit_wallet.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -36,7 +37,7 @@ public class TarjetaController {
     }
 
     @PostMapping("/recargas/iniciar")
-    public IniciarRecargaResponse iniciar (@RequestBody IniciarRecargaRequest request,
+    public IniciarRecargaResponse iniciar (@Valid  @RequestBody IniciarRecargaRequest request,
                                            Authentication authentication){
       Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
       Tarjeta tarjeta  = tarjetaService.obtenerPorUsuario(usuario);
@@ -45,12 +46,12 @@ public class TarjetaController {
     }
 
     @PostMapping("/recargas/confirmar")
-    public ConfirmarRecargaResponse confirmar (@RequestBody ConfirmarRecargaRequest request){
+    public ConfirmarRecargaResponse confirmar (@Valid @RequestBody ConfirmarRecargaRequest request){
         BigDecimal saldo = solicitudRecargaService.confirmar(request.getCodigoTemporal());
         return new ConfirmarRecargaResponse(saldo);
     }
 
-    @GetMapping("/mi-tarjeta")
+    @GetMapping("/mi-tarjeta")  
     public TarjetaResponse miTarjeta(Authentication authentication){
         Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
         Tarjeta tarjeta = tarjetaService.obtenerPorUsuario(usuario);
