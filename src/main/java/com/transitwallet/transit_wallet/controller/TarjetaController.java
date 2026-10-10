@@ -51,7 +51,7 @@ public class TarjetaController {
         return new ConfirmarRecargaResponse(saldo);
     }
 
-    @GetMapping("/mi-tarjeta")  
+    @GetMapping("/mi-tarjeta")
     public TarjetaResponse miTarjeta(Authentication authentication){
         Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
         Tarjeta tarjeta = tarjetaService.obtenerPorUsuario(usuario);

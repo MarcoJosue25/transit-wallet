@@ -36,7 +36,7 @@ public class UsuarioController {
         Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
         return new UsuarioResponse(usuario.getId(), usuario.getNombre(), usuario.getEmail());
     }
-    @PutMapping("me")
+    @PutMapping("/me")
     public UsuarioResponse actualizar(Authentication authentication,@Valid  @RequestBody ActualizarUsuarioRequest request){
         Usuario usuario = usuarioService.actualizar(authentication.getName(), request.getNombre());
         return new UsuarioResponse(usuario.getId(), usuario.getNombre(), usuario.getEmail());
