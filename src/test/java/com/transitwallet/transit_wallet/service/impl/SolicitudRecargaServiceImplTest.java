@@ -5,11 +5,13 @@ import com.transitwallet.transit_wallet.exception.SolicitudRecargaNoEncontradaEx
 import com.transitwallet.transit_wallet.model.Movimiento;
 import com.transitwallet.transit_wallet.model.SolicitudRecarga;
 import com.transitwallet.transit_wallet.model.Tarjeta;
+import com.transitwallet.transit_wallet.model.Usuario;
 import com.transitwallet.transit_wallet.model.enums.EstadoRecarga;
 import com.transitwallet.transit_wallet.model.enums.EstadoTarjeta;
 import com.transitwallet.transit_wallet.repository.MovimientoRepository;
 import com.transitwallet.transit_wallet.repository.SolicitudRecargaRepository;
 import com.transitwallet.transit_wallet.repository.TarjetaRepository;
+import com.transitwallet.transit_wallet.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,8 +24,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 //Activación de Mockito
 @ExtendWith(MockitoExtension.class)
@@ -62,6 +63,31 @@ class SolicitudRecargaServiceImplTest {
     }
 
     @Test
+    void confirmarSiLaCuentaEstaInactiva(){
+        Usuario usuario = new Usuario();
+        usuario.setActivo(false);
+
+        Tarjeta tarjeta = new Tarjeta();
+        tarjeta.setSaldo(new BigDecimal("10.00"));
+        tarjeta.setUsuario(usuario);
+
+        SolicitudRecarga solicitud = new SolicitudRecarga();
+        solicitud.setEstado(EstadoRecarga.PENDIENTE);
+        solicitud.setFechaExpiracion(LocalDateTime.now().plusMinutes(5));
+        solicitud.setMonto(new BigDecimal("20.00"));
+        solicitud.setTarjeta(tarjeta);
+
+        when(solicitudRecargaRepository.findByCodigoTemporal("123456"))
+                .thenReturn(Optional.of(solicitud));
+        assertThrows(SolicitudRecargaInvalidaException.class,()
+        -> service.confirmar("123456"));
+
+        assertEquals(new BigDecimal("10.00"),tarjeta.getSaldo());
+        verify(tarjetaRepository, never()).save(any(Tarjeta.class));
+    }
+
+
+    @Test
     void confirmarLanzaExcepcionSiLaSolicitudVencio() {
         SolicitudRecarga solicitud = new SolicitudRecarga();
         solicitud.setEstado(EstadoRecarga.PENDIENTE);
@@ -76,6 +102,7 @@ class SolicitudRecargaServiceImplTest {
     @Test
     void confirmarActualizaElSaldoCorrectamente(){
         Tarjeta tarjeta = new Tarjeta();
+        tarjeta.setUsuario(new Usuario());
         tarjeta.setSaldo(new BigDecimal("10.00"));
         tarjeta.setEstado(EstadoTarjeta.ACTIVA);
 
@@ -99,6 +126,7 @@ class SolicitudRecargaServiceImplTest {
     @Test
     void confirmarReactivarTarjetaBloqueada(){
         Tarjeta tarjeta = new Tarjeta();
+        tarjeta.setUsuario(new Usuario());
         tarjeta.setEstado(EstadoTarjeta.BLOQUEADA);
         tarjeta.setSaldo(new BigDecimal("1.00"));
 
@@ -121,6 +149,7 @@ class SolicitudRecargaServiceImplTest {
     @Test
     void confirmarApagarAlertaSaldoBajo(){
         Tarjeta tarjeta = new Tarjeta();
+        tarjeta.setUsuario(new Usuario());
         tarjeta.setAlertaSaldoBajo(true);
         tarjeta.setSaldo(new BigDecimal("1.50"));
 
