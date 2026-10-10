@@ -109,9 +109,9 @@ class UsuarioServiceImplTest {
         usuario.setPassword("marco123");
         when(usuarioRepository.findByEmail("marco@gmail.com"))
                 .thenReturn(Optional.of(usuario));
-        when(passwordEncoder.matches("clave","marco123")).thenReturn(false);
+        when(passwordEncoder.matches("clave123","marco123")).thenReturn(false);
         assertThrows(CredencialesInvalidasException.class,
-                () -> service.login("marco@gmail.com", "marco123"));
+                () -> service.login("marco@gmail.com", "clave123"));
         verify(jwtService,never()).generarToken(anyString());
     }
 
