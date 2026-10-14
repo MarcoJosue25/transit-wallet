@@ -1,14 +1,8 @@
 package com.transitwallet.transit_wallet.controller;
 
 import com.transitwallet.transit_wallet.dto.*;
-import com.transitwallet.transit_wallet.model.Movimiento;
-import com.transitwallet.transit_wallet.model.SolicitudRecarga;
-import com.transitwallet.transit_wallet.model.Tarjeta;
-import com.transitwallet.transit_wallet.model.Usuario;
-import com.transitwallet.transit_wallet.service.MovimientoService;
-import com.transitwallet.transit_wallet.service.SolicitudRecargaService;
-import com.transitwallet.transit_wallet.service.TarjetaService;
-import com.transitwallet.transit_wallet.service.UsuarioService;
+import com.transitwallet.transit_wallet.model.*;
+import com.transitwallet.transit_wallet.service.*;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,28 +21,38 @@ public class TarjetaController {
     private final TarjetaService tarjetaService;
     private final SolicitudRecargaService solicitudRecargaService;
     private final MovimientoService movimientoService;
+    private final SolicitudConsumoService solicitudConsumoService;
 
     public TarjetaController(SolicitudRecargaService solicitudRecargaService, UsuarioService usuarioService, TarjetaService tarjetaService,
-                             MovimientoService movimientoService) {
+                             MovimientoService movimientoService, SolicitudConsumoService solicitudConsumoService) {
         this.solicitudRecargaService = solicitudRecargaService;
         this.usuarioService = usuarioService;
         this.tarjetaService = tarjetaService;
         this.movimientoService = movimientoService;
+        this.solicitudConsumoService = solicitudConsumoService;
     }
 
     @PostMapping("/recargas/iniciar")
     public IniciarRecargaResponse iniciar (@Valid  @RequestBody IniciarRecargaRequest request,
                                            Authentication authentication){
-      Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
-      Tarjeta tarjeta  = tarjetaService.obtenerPorUsuario(usuario);
-      SolicitudRecarga solicitud = solicitudRecargaService.iniciar(tarjeta, request.getMonto(), request.getMetodoPago());
-      return new IniciarRecargaResponse(solicitud.getCodigoTemporal(), solicitud.getFechaExpiracion());
+        Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
+        Tarjeta tarjeta  = tarjetaService.obtenerPorUsuario(usuario);
+        SolicitudRecarga solicitud = solicitudRecargaService.iniciar(tarjeta, request.getMonto(), request.getMetodoPago());
+        return new IniciarRecargaResponse(solicitud.getCodigoTemporal(), solicitud.getFechaExpiracion());
     }
 
     @PostMapping("/recargas/confirmar")
     public ConfirmarRecargaResponse confirmar (@Valid @RequestBody ConfirmarRecargaRequest request){
         BigDecimal saldo = solicitudRecargaService.confirmar(request.getCodigoTemporal());
         return new ConfirmarRecargaResponse(saldo);
+    }
+    @PostMapping("/consumo")
+    public ConfirmarConsumoResponse consumo (Authentication authentication){
+        Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
+        Tarjeta tarjeta = tarjetaService.obtenerPorUsuario(usuario);
+        SolicitudConsumo consumo = solicitudConsumoService.consumir(tarjeta);
+        return new ConfirmarConsumoResponse(consumo.getEstado(), tarjeta.getSaldo());
+
     }
 
     @GetMapping("/mi-tarjeta")
@@ -65,5 +69,4 @@ public class TarjetaController {
         Tarjeta tarjeta = tarjetaService.obtenerPorUsuario(usuario);
         return movimientoService.obtenerPorTarjeta(tarjeta, pageable).map(m -> new MovimientoResponse(m.getTipo(), m.getMonto(), m.getSaldoResultante(),m.getFecha()));
     }
-
 }
