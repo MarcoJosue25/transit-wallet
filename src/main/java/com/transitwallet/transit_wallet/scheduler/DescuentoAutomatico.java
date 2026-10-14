@@ -54,7 +54,7 @@ public class DescuentoAutomatico {
                 movimiento.setSaldoResultante(tarjeta.getSaldo());
                 movimientoRepository.save(movimiento);
             }else{
-                tarjeta.setEstado(EstadoTarjeta.BLOQUEADA);
+                tarjeta.setEstado(EstadoTarjeta.SALDO_INSUFICIENTE);
                 tarjetaRepository.save(tarjeta);
             }
         }
