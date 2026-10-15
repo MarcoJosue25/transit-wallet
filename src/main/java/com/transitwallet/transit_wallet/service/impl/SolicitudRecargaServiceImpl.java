@@ -74,7 +74,7 @@ public class SolicitudRecargaServiceImpl implements SolicitudRecargaService {
         if (tarjeta.getSaldo().compareTo(UMBRAL_SALDO_BAJO)>= 0){
             tarjeta.setAlertaSaldoBajo(false);
         }
-        if(tarjeta.getEstado() == EstadoTarjeta.BLOQUEADA){
+        if(tarjeta.getEstado() == EstadoTarjeta.SALDO_INSUFICIENTE){
             tarjeta.setEstado(EstadoTarjeta.ACTIVA);
         }
         tarjetaRepository.save(tarjeta);

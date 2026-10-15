@@ -11,7 +11,6 @@ import com.transitwallet.transit_wallet.model.enums.EstadoTarjeta;
 import com.transitwallet.transit_wallet.repository.MovimientoRepository;
 import com.transitwallet.transit_wallet.repository.SolicitudRecargaRepository;
 import com.transitwallet.transit_wallet.repository.TarjetaRepository;
-import com.transitwallet.transit_wallet.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -80,7 +79,7 @@ class SolicitudRecargaServiceImplTest {
         when(solicitudRecargaRepository.findByCodigoTemporal("123456"))
                 .thenReturn(Optional.of(solicitud));
         assertThrows(SolicitudRecargaInvalidaException.class,()
-        -> service.confirmar("123456"));
+                -> service.confirmar("123456"));
 
         assertEquals(new BigDecimal("10.00"),tarjeta.getSaldo());
         verify(tarjetaRepository, never()).save(any(Tarjeta.class));
@@ -124,10 +123,10 @@ class SolicitudRecargaServiceImplTest {
     }
 
     @Test
-    void confirmarReactivarTarjetaBloqueada(){
+    void confirmarReactivarTarjetaSinSaldo(){
         Tarjeta tarjeta = new Tarjeta();
         tarjeta.setUsuario(new Usuario());
-        tarjeta.setEstado(EstadoTarjeta.BLOQUEADA);
+        tarjeta.setEstado(EstadoTarjeta.SALDO_INSUFICIENTE);
         tarjeta.setSaldo(new BigDecimal("1.00"));
 
         SolicitudRecarga solicitud = new SolicitudRecarga();
@@ -152,6 +151,7 @@ class SolicitudRecargaServiceImplTest {
         tarjeta.setUsuario(new Usuario());
         tarjeta.setAlertaSaldoBajo(true);
         tarjeta.setSaldo(new BigDecimal("1.50"));
+        tarjeta.setEstado(EstadoTarjeta.SALDO_INSUFICIENTE);
 
         SolicitudRecarga solicitud = new SolicitudRecarga();
         solicitud.setTarjeta(tarjeta);
@@ -164,7 +164,29 @@ class SolicitudRecargaServiceImplTest {
         BigDecimal saldoResultante = service.confirmar("123456");
 
         assertFalse(tarjeta.isAlertaSaldoBajo());
+        assertEquals(EstadoTarjeta.ACTIVA, tarjeta.getEstado());
         verify(tarjetaRepository).save(tarjeta);
         verify(solicitudRecargaRepository).save(solicitud);
-        verify(movimientoRepository).save(any(Movimiento.class));    }
+        verify(movimientoRepository).save(any(Movimiento.class));
+    }
+
+
+@Test
+void confirmarNoReactivaTarjetaBloqueada(){
+    Tarjeta tarjeta = new Tarjeta();
+    tarjeta.setUsuario(new Usuario());
+    tarjeta.setEstado(EstadoTarjeta.BLOQUEADA);
+    tarjeta.setSaldo(new BigDecimal("10.00"));
+
+    SolicitudRecarga recarga = new SolicitudRecarga();
+    recarga.setTarjeta(tarjeta);
+    recarga.setMonto(new BigDecimal("20.00"));
+    recarga.setEstado(EstadoRecarga.PENDIENTE);
+    recarga.setFechaExpiracion(LocalDateTime.now().plusMinutes(5));
+
+    when(solicitudRecargaRepository.findByCodigoTemporal("123123"))
+            .thenReturn(Optional.of(recarga));
+    service.confirmar("123123");
+    assertEquals(EstadoTarjeta.BLOQUEADA, tarjeta.getEstado());
+    }
 }

@@ -47,12 +47,11 @@ public class TarjetaController {
         return new ConfirmarRecargaResponse(saldo);
     }
     @PostMapping("/consumo")
-    public ConfirmarConsumoResponse consumo (Authentication authentication){
+    public ConsumoResponse consumo (Authentication authentication){
         Usuario usuario = usuarioService.obtenerPorEmail(authentication.getName());
         Tarjeta tarjeta = tarjetaService.obtenerPorUsuario(usuario);
         SolicitudConsumo consumo = solicitudConsumoService.consumir(tarjeta);
-        return new ConfirmarConsumoResponse(consumo.getEstado(), tarjeta.getSaldo());
-
+        return new ConsumoResponse(consumo.getEstado(), tarjeta.getSaldo());
     }
 
     @GetMapping("/mi-tarjeta")

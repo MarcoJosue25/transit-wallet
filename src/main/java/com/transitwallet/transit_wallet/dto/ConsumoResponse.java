@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Getter
 @AllArgsConstructor
-public class ConfirmarConsumoResponse {
+public class ConsumoResponse {
     private EstadoConsumo estado;
     private BigDecimal saldo;
 }
