@@ -66,6 +66,11 @@ public class SolicitudRecargaServiceImpl implements SolicitudRecargaService {
             throw new SolicitudRecargaInvalidaException("El código venció");
         }
         Tarjeta tarjeta = solicitud.getTarjeta();
+
+        if(tarjeta.getEstado() == EstadoTarjeta.BLOQUEADA){
+            throw new SolicitudRecargaInvalidaException("La tarjeta está bloqueada y no puede recibir recargas");
+        }
+
         if(!tarjeta.getUsuario().isActivo()){
             throw new SolicitudRecargaInvalidaException("La cuenta está inactiva" +
                     "y no puede procesar recargas");

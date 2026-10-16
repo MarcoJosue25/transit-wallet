@@ -170,23 +170,27 @@ class SolicitudRecargaServiceImplTest {
         verify(movimientoRepository).save(any(Movimiento.class));
     }
 
+    @Test
+    void confirmarRechazaUnaTarjetaBloqueada(){
+        Tarjeta tarjeta = new Tarjeta();
+        tarjeta.setUsuario(new Usuario());
+        tarjeta.setEstado(EstadoTarjeta.BLOQUEADA);
+        tarjeta.setSaldo(new BigDecimal("10.00"));
 
-@Test
-void confirmarNoReactivaTarjetaBloqueada(){
-    Tarjeta tarjeta = new Tarjeta();
-    tarjeta.setUsuario(new Usuario());
-    tarjeta.setEstado(EstadoTarjeta.BLOQUEADA);
-    tarjeta.setSaldo(new BigDecimal("10.00"));
+        SolicitudRecarga recarga = new SolicitudRecarga();
+        recarga.setTarjeta(tarjeta);
+        recarga.setEstado(EstadoRecarga.PENDIENTE);
+        recarga.setFechaExpiracion(LocalDateTime.now().plusMinutes(5));
 
-    SolicitudRecarga recarga = new SolicitudRecarga();
-    recarga.setTarjeta(tarjeta);
-    recarga.setMonto(new BigDecimal("20.00"));
-    recarga.setEstado(EstadoRecarga.PENDIENTE);
-    recarga.setFechaExpiracion(LocalDateTime.now().plusMinutes(5));
+        when(solicitudRecargaRepository.findByCodigoTemporal("123123"))
+                .thenReturn(Optional.of(recarga));
 
-    when(solicitudRecargaRepository.findByCodigoTemporal("123123"))
-            .thenReturn(Optional.of(recarga));
-    service.confirmar("123123");
-    assertEquals(EstadoTarjeta.BLOQUEADA, tarjeta.getEstado());
+        SolicitudRecargaInvalidaException ex = assertThrows(SolicitudRecargaInvalidaException.class,
+                () -> service.confirmar("123123"));
+
+        assertTrue(ex.getMessage().contains("bloqueada"));
+        verify(tarjetaRepository, never()).save(any(Tarjeta.class));
+        verify(solicitudRecargaRepository, never()).save(any(SolicitudRecarga.class));
+        verify(movimientoRepository, never()).save(any(Movimiento.class));
     }
 }
