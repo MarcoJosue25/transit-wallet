@@ -38,26 +38,27 @@ class UsuarioServiceImplTest {
     @Test
     void obtenerPorEmailDevuelveElUsuarioSiEstaActivo(){
         Usuario usuario = new Usuario();
-        usuario.setEmail("ema@gmail.com");
-
-        when(usuarioRepository.findByEmail(usuario.getEmail()))
+        usuario.setEmail("email");
+        when(usuarioRepository.findByEmail("email"))
                 .thenReturn(Optional.of(usuario));
-        Usuario resultado = service.obtenerPorEmail(usuario.getEmail());
-        assertEquals(usuario, resultado);
+        Usuario encontrado = service.obtenerPorEmail("email");
+        assertEquals(usuario,encontrado);
     }
+
 
     @Test
     void obtenerPorEmailLanzaExcepcionSiElEmailNoExiste(){
         when(usuarioRepository.findByEmail("email"))
                 .thenReturn(Optional.empty());
-        assertThrows(CredencialesInvalidasException.class, () ->
-                service.obtenerPorEmail("email"));
+        assertThrows(CredencialesInvalidasException.class,
+                () -> service.obtenerPorEmail("email"));
     }
 
     @Test
     void obtenerPorEmailLanzaExcepcionSiLaCuentaEstaInactiva(){
         Usuario usuario = new Usuario();
         usuario.setActivo(false);
+        usuario.setEmail("email");
 
         when(usuarioRepository.findByEmail("email"))
                 .thenReturn(Optional.of(usuario));
@@ -68,65 +69,71 @@ class UsuarioServiceImplTest {
     @Test
     void actualizarCambiaElNombre(){
         Usuario usuario = new Usuario();
-        usuario.setNombre("Nombre anterior");
-        when(usuarioRepository.findByEmail(usuario.getEmail()))
-                .thenReturn(Optional.of(usuario));
-        Usuario resultado = service.actualizar(usuario.getEmail(), "Gregorio");
+        usuario.setNombre("marco");
+        usuario.setEmail("email");
 
-        assertEquals("Gregorio", resultado.getNombre());
-        verify(usuarioRepository).save(usuario);
+        when(usuarioRepository.findByEmail("email"))
+                .thenReturn(Optional.of(usuario));
+        Usuario actualizado = service.actualizar("email", "mario");
+        assertEquals("mario",actualizado.getNombre());
+        verify(usuarioRepository).save(actualizado);
     }
 
     @Test
     void darDeBajaDescativaElUsuarioYBloqueaLaTarjeta(){
         Usuario usuario = new Usuario();
-        when(usuarioRepository.findByEmail(usuario.getEmail()))
+        usuario.setEmail("email");
+        usuario.setActivo(true);
+        when(usuarioRepository.findByEmail("email"))
                 .thenReturn(Optional.of(usuario));
-        service.darDeBaja(usuario.getEmail());
+        service.darDeBaja("email");
         assertFalse(usuario.isActivo());
         verify(usuarioRepository).save(usuario);
         verify(tarjetaService).bloquear(usuario);
     }
 
+
     @Test
     void unLoginCorrectoDevuelveUnToken(){
         Usuario usuario = new Usuario();
-        usuario.setEmail("marco@gmail.com");
+        usuario.setEmail("email");
         usuario.setPassword("marco123");
-        when(usuarioRepository.findByEmail("marco@gmail.com"))
+        when(usuarioRepository.findByEmail("email"))
                 .thenReturn(Optional.of(usuario));
-        when(passwordEncoder.matches("clave123","marco123"))
+        when(passwordEncoder.matches("clave123", "marco123"))
                 .thenReturn(true);
-        when(jwtService.generarToken("marco@gmail.com")).thenReturn("tokenPrueba");
-        String token  = service.login("marco@gmail.com", "clave123");
-        assertEquals("tokenPrueba", token);
+        when(jwtService.generarToken("email"))
+                .thenReturn("ddfasdsfasds");
+        String token = service.login("email", "clave123");
+        assertEquals("ddfasdsfasds", token);
     }
 
     @Test
     void loginLanzaExcepcionSiElPasswordEsIncorrecto(){
         Usuario usuario = new Usuario();
-        usuario.setEmail("marco@gmail.com");
+        usuario.setEmail("email");
         usuario.setPassword("marco123");
-        when(usuarioRepository.findByEmail("marco@gmail.com"))
+        when(usuarioRepository.findByEmail("email"))
                 .thenReturn(Optional.of(usuario));
-        when(passwordEncoder.matches("clave123","marco123")).thenReturn(false);
+        when(passwordEncoder.matches("clave123", "marco123"))
+                .thenReturn(false);
         assertThrows(CredencialesInvalidasException.class,
-                () -> service.login("marco@gmail.com", "clave123"));
-        verify(jwtService,never()).generarToken(anyString());
+                () -> service.login("email","clave123"));
+        verify(jwtService, never()).generarToken(anyString());
     }
 
     @Test
     void loginLanzaExcepcionSiLaCuentaEstaInactiva(){
         Usuario usuario = new Usuario();
-        usuario.setEmail("marco@gmail.com");
+        usuario.setEmail("email");
         usuario.setPassword("marco123");
         usuario.setActivo(false);
-
-        when(usuarioRepository.findByEmail("marco@gmail.com"))
+        when(usuarioRepository.findByEmail("email"))
                 .thenReturn(Optional.of(usuario));
-        when(passwordEncoder.matches("clave123", "marco123")).thenReturn(true);
+        when(passwordEncoder.matches("clave123","marco123"))
+                .thenReturn(true);
         assertThrows(CredencialesInvalidasException.class,
-                () -> service.login("marco@gmail.com", "clave123"));
+                () -> service.login("email","clave123"));
     }
 
 }

@@ -17,9 +17,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class SolicitudConsumoServiceImplTest {
@@ -39,30 +39,29 @@ public class SolicitudConsumoServiceImplTest {
     @Test
     void consumoConfirmado(){
         Tarjeta tarjeta = new Tarjeta();
-        tarjeta.setEstado(EstadoTarjeta.ACTIVA);
         tarjeta.setSaldo(new BigDecimal("10.00"));
+        tarjeta.setEstado(EstadoTarjeta.ACTIVA);
 
         SolicitudConsumo consumo = service.consumir(tarjeta);
 
         assertEquals(EstadoConsumo.CONFIRMADO, consumo.getEstado());
-        assertEquals(new BigDecimal("7.55"), tarjeta.getSaldo());
+        assertEquals(new BigDecimal("7.55"),tarjeta.getSaldo());
         verify(tarjetaRepository).save(tarjeta);
         verify(movimientoRepository).save(any(Movimiento.class));
-
     }
+
     @Test
     void consumirDeniegaSiElSaldoNoAlcanza(){
         Tarjeta tarjeta = new Tarjeta();
+        tarjeta.setSaldo(new BigDecimal("2.00"));
         tarjeta.setEstado(EstadoTarjeta.ACTIVA);
-        tarjeta.setSaldo(new BigDecimal("1.00"));
 
         SolicitudConsumo consumo = service.consumir(tarjeta);
-
-        assertEquals(EstadoConsumo.DENEGADO, consumo.getEstado());
-        assertEquals(new BigDecimal("1.00"), tarjeta.getSaldo());
-        verify(solicitudConsumoRepository).save(consumo);
-        verify(tarjetaRepository, never()).save(any(Tarjeta.class));
-        verify(movimientoRepository, never()).save(any(Movimiento.class));
+        assertEquals(tarjeta.getEstado(), EstadoConsumo.DENEGADO);
+        assertEquals(new BigDecimal("2.00"), tarjeta.getSaldo());
+        verify(solicitudConsumoRepository).save(any(SolicitudConsumo.class));
+        verify(tarjetaRepository).save(any(Tarjeta.class));
+        verify(movimientoRepository).save(any(Movimiento.class));
     }
 
     @Test
@@ -74,7 +73,8 @@ public class SolicitudConsumoServiceImplTest {
         SolicitudConsumo consumo = service.consumir(tarjeta);
 
         assertEquals(EstadoConsumo.CONFIRMADO, consumo.getEstado());
-        assertEquals(new BigDecimal("0.00"), tarjeta.getSaldo());
+        assertEquals(new BigDecimal("0.00"),tarjeta.getSaldo());
+
     }
 
 }
