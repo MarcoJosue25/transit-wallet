@@ -57,11 +57,11 @@ public class SolicitudConsumoServiceImplTest {
         tarjeta.setEstado(EstadoTarjeta.ACTIVA);
 
         SolicitudConsumo consumo = service.consumir(tarjeta);
-        assertEquals(tarjeta.getEstado(), EstadoConsumo.DENEGADO);
+        assertEquals(EstadoConsumo.DENEGADO, consumo.getEstado());
         assertEquals(new BigDecimal("2.00"), tarjeta.getSaldo());
         verify(solicitudConsumoRepository).save(any(SolicitudConsumo.class));
-        verify(tarjetaRepository).save(any(Tarjeta.class));
-        verify(movimientoRepository).save(any(Movimiento.class));
+        verify(tarjetaRepository,never()).save(any(Tarjeta.class));
+        verify(movimientoRepository,never()).save(any(Movimiento.class));
     }
 
     @Test

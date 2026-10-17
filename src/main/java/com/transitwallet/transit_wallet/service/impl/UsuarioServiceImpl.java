@@ -69,12 +69,25 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public Usuario actualizar(String email, String nNombre){
+    public Usuario actualizarNombre(String email, String nNombre){
         Usuario usuario = obtenerPorEmail(email);
         usuario.setNombre(nNombre);
         usuarioRepository.save(usuario);
         return usuario;
     }
+
+    @Override
+    public Usuario actualizarContraseña(String email, String passwordActual, String passwordNueva){
+        Usuario usuario = obtenerPorEmail(email);
+        if(!passwordEncoder.matches(passwordActual, usuario.getPassword())){
+            throw new CredencialesInvalidasException("Las contraseñas no coinciden");
+        }
+        usuario.setPassword(passwordEncoder.encode(passwordNueva));
+        usuarioRepository.save(usuario);
+        return usuario;
+    }
+
+
     @Transactional
     @Override
     public void darDeBaja(String email){

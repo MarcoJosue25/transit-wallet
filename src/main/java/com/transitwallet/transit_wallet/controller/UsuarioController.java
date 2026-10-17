@@ -37,10 +37,18 @@ public class UsuarioController {
         return new UsuarioResponse(usuario.getId(), usuario.getNombre(), usuario.getEmail());
     }
     @PutMapping("/me")
-    public UsuarioResponse actualizar(Authentication authentication,@Valid  @RequestBody ActualizarUsuarioRequest request){
-        Usuario usuario = usuarioService.actualizar(authentication.getName(), request.getNombre());
+    public UsuarioResponse actualizarNombre(Authentication authentication,@Valid  @RequestBody ActualizarUsuarioRequest request){
+        Usuario usuario = usuarioService.actualizarNombre(authentication.getName(), request.getNombre());
         return new UsuarioResponse(usuario.getId(), usuario.getNombre(), usuario.getEmail());
     }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> actualizarContraseña(Authentication authentication, @Valid @RequestBody ActualizarPasswordRequest request){
+        Usuario usuario = usuarioService.actualizarContraseña(authentication.getName(), request.getPasswordActual(), request.getPasswordNueva());
+        return ResponseEntity.noContent().build();
+    }
+
+
     @DeleteMapping("/me")
     public ResponseEntity<Void> darDeBaja(Authentication authentication){
         usuarioService.darDeBaja(authentication.getName());
