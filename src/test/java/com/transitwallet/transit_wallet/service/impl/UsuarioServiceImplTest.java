@@ -74,7 +74,7 @@ class UsuarioServiceImplTest {
 
         when(usuarioRepository.findByEmail("email"))
                 .thenReturn(Optional.of(usuario));
-        Usuario actualizado = service.actualizar("email", "mario");
+        Usuario actualizado = service.actualizarNombre("email", "mario");
         assertEquals("mario",actualizado.getNombre());
         verify(usuarioRepository).save(actualizado);
     }
