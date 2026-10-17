@@ -2,17 +2,14 @@ package com.transitwallet.transit_wallet.service.impl;
 
 import com.transitwallet.transit_wallet.exception.CredencialesInvalidasException;
 import com.transitwallet.transit_wallet.exception.EmailYaRegistradoException;
-import com.transitwallet.transit_wallet.model.Tarjeta;
 import com.transitwallet.transit_wallet.model.Usuario;
-import com.transitwallet.transit_wallet.model.enums.EstadoTarjeta;
-import com.transitwallet.transit_wallet.repository.TarjetaRepository;
 import com.transitwallet.transit_wallet.repository.UsuarioRepository;
 import com.transitwallet.transit_wallet.security.JwtService;
 import com.transitwallet.transit_wallet.service.TarjetaService;
 import com.transitwallet.transit_wallet.service.UsuarioService;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
