@@ -136,4 +136,34 @@ class UsuarioServiceImplTest {
                 () -> service.login("email","clave123"));
     }
 
+    @Test
+    void cambiaLaContraseñaSiLaActualEsCorrecta(){
+        Usuario usuario = new Usuario();
+        usuario.setEmail("email");
+        usuario.setPassword("marco123");
+        when(usuarioRepository.findByEmail("email"))
+                .thenReturn(Optional.of(usuario));
+        when(passwordEncoder.matches("clave123","marco123"))
+                .thenReturn(true);
+        when(passwordEncoder.encode("marco1234"))
+                .thenReturn("clave1234");
+        service.actualizarContraseña("email", "clave123", "marco1234");
+        assertEquals("clave1234", usuario.getPassword());
+        verify(usuarioRepository).save(usuario);
+    }
+
+    @Test
+    void cambiarLaContraseñaLanzaExcepcionSiLosDatosNoCoinciden(){
+        Usuario usuario = new Usuario();
+        usuario.setEmail("email");
+        usuario.setPassword("marco123");
+        when(usuarioRepository.findByEmail("email"))
+                .thenReturn(Optional.of(usuario));
+        when(passwordEncoder.matches("clave123","marco123"))
+                .thenReturn(false);
+        assertThrows(CredencialesInvalidasException.class,
+                () -> service.actualizarContraseña("email", "clave123", "marco1234"));
+        assertEquals("marco123",usuario.getPassword());
+        verify(usuarioRepository,never()).save(any(Usuario.class));
+    }
 }
