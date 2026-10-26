@@ -8,8 +8,8 @@ El nombre es genérico a propósito: no pretende replicar ninguna tarjeta ni emp
 
 - Registro e inicio de sesión con JWT, sin sesiones en el servidor y con contraseñas guardadas con BCrypt. El usuario puede ver su perfil, editarlo y darse de baja.
 - Al registrarte se crea tu tarjeta virtual, con un número único de 16 dígitos.
-- Recarga en dos pasos: se pide (`YAPE` o `TARJETA`) y el sistema devuelve un código de 6 dígitos que vence a los 5 minutos; luego se confirma con ese código y se suma el saldo. Si la tarjeta estaba bloqueada, se reactiva.
-- Descuento automático a las 8:00, 13:00 y 18:00: cobra 2,45 a cada tarjeta activa según sus usos diarios (de 1 a 3, asignados al azar al crearla). Si el saldo no alcanza, la tarjeta se bloquea hasta la próxima recarga.
+- Recarga en dos pasos: se pide (`YAPE` o `TARJETA`) y el sistema devuelve un código de 6 dígitos que vence a los 5 minutos; luego se confirma con ese código y se suma el saldo. Si la tarjeta estaba sin saldo, se reactiva; si está bloqueada, la recarga se rechaza.
+- Descuento automático a las 8:00, 13:00 y 18:00: cobra 2,45 a cada tarjeta activa según sus usos diarios (de 1 a 3, asignados al azar al crearla). Si el saldo no alcanza, la tarjeta queda en `SALDO_INSUFICIENTE` hasta la próxima recarga.
 - Alerta de saldo bajo (menos de 5,00) e historial de movimientos paginado, del más reciente al más antiguo.
 
 ## Tecnologías
@@ -70,14 +70,16 @@ Los errores responden con un cuerpo `{"mensaje": "..."}` y el código que corres
 ## Pruebas
 
 ```bash
-./mvnw test -Dtest="SolicitudRecargaServiceImplTest,UsuarioServiceImplTest"
+./mvnw test
 ```
 
-Son 15 pruebas unitarias con JUnit 5 y Mockito, sin base de datos: confirmación de recargas (errores, saldo, reactivación, alerta y cuenta inactiva) y usuarios (consulta, edición, baja y login). `./mvnw test` sin filtro también ejecuta un test de arranque de Spring que necesita la base de datos y las variables de entorno.
+Son 30 pruebas con JUnit 5 y Mockito, más un test de arranque de Spring. 21 son unitarias y no usan base de datos: recargas (errores, saldo, reactivación, alerta y cuenta inactiva), consumo (pasaje cobrado y denegado) y usuarios (consulta, edición, cambio de contraseña, baja y login). Las otras 9 prueban los controllers con MockMvc: validación de datos (400), acceso sin token (401) y respuestas como el login, el consumo o la baja (204).
+
+El test de arranque necesita la base de datos y las variables de entorno. Para correr todo lo demás sin ellas: `./mvnw test -Dtest='!TransitWalletApplicationTests'`.
 
 ## Limitaciones conocidas
 
-- Faltan pruebas de los demás servicios, del proceso programado y de integración.
+- Faltan pruebas del descuento automático, de la capa JWT, de los servicios de tarjetas y movimientos, y de integración con la base de datos.
 - La concurrencia no está controlada: dos confirmaciones simultáneas del mismo código podrían procesarse a la vez.
 - El descuento automático guarda cada cambio por separado, sin una transacción por tarjeta.
 - Los códigos temporales de 6 dígitos no se comprueban como únicos.
